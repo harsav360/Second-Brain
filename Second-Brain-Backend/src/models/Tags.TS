@@ -1,8 +1,12 @@
-import mongoose from "mongoose";
+import mongoose,{Model,Document,Schema} from "mongoose";
 
-const TagSchema = new mongoose.Schema({
+interface Itag extends Document {
+    title:string
+}
+
+const TagSchema:Schema<Itag> = new Schema({
     title : {type:String,required : true,unique:true}
 });
 
-const Tag = mongoose.model('Tag',TagSchema);
-module.exports = Tag;
+const Tag:Model<Itag> = mongoose.model('Tag',TagSchema);
+export default Tag;

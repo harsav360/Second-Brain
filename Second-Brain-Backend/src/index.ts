@@ -1,13 +1,27 @@
-
-import express from "express";
+import express, { Request, Response } from "express";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-// import {User from './models/User';
-import { JWT_PASSWORD } from "./config/util";
 import { userMiddleware } from "./middlewares/Middleware";
+import { connect } from "./config/db";
+import dotenv from "dotenv";
+import User from './models/User';
+import Content from './models/Content';
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 app.use(express.json());
+
+// Connect to MongoDB
+connect();
+
+// Health check endpoint
+app.get("/api/v1/healthCheck", (req, res) => {
+    res.status(200).json({
+        message: "Server is up and running"
+    });
+});
 
 app.post("/api/v1/signup", async (req, res) => {
     // TODO: zod validation , hash the password
@@ -15,7 +29,7 @@ app.post("/api/v1/signup", async (req, res) => {
     const password = req.body.password;
 
     try {
-        await UserModel.create({
+        await User.create({
             username: username,
             password: password
         }) 
@@ -34,14 +48,14 @@ app.post("/api/v1/signin", async (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
 
-    const existingUser = await UserModel.findOne({
+    const existingUser = await User.findOne({
         username,
         password
     })
     if (existingUser) {
         const token = jwt.sign({
             id: existingUser._id
-        }, JWT_PASSWORD)
+        }, process.env.JWT_PASSWORD!)
 
         res.json({
             token
@@ -56,7 +70,7 @@ app.post("/api/v1/signin", async (req, res) => {
 app.post("/api/v1/content", userMiddleware, async (req, res) => {
     const link = req.body.link;
     const type = req.body.type;
-    await ContentModel.create({
+    await Content.create({
         link,
         type,
         title: req.body.title,
@@ -74,7 +88,7 @@ app.post("/api/v1/content", userMiddleware, async (req, res) => {
 app.get("/api/v1/content", userMiddleware, async (req, res) => {
     // @ts-ignore
     const userId = req.userId;
-    const content = await ContentModel.find({
+    const content = await Content.find({
         userId: userId
     }).populate("userId", "username")
     res.json({
@@ -85,7 +99,7 @@ app.get("/api/v1/content", userMiddleware, async (req, res) => {
 app.delete("/api/v1/content", userMiddleware, async (req, res) => {
     const contentId = req.body.contentId;
 
-    await ContentModel.deleteMany({
+    await Content.deleteMany({
         contentId,
         // @ts-ignore
         userId: req.userId

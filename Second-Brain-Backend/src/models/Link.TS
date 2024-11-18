@@ -1,11 +1,14 @@
-import mongoose from "mongoose";
+import mongoose,{Model,Document,Schema} from "mongoose";
 
-const mongoDb = mongoose.Schema;
+interface ILink extends Document {
+    hash : String,
+    userId:mongoose.Types.ObjectId
+}
 
-const linkSchema = new mongoDb({
+const linkSchema : Schema<ILink> = new Schema({
     hash : {type:String,required:true},
-    userId : {type:mongoDb.Types.ObjectId,ref:'User',required:true}
+    userId : {type:mongoose.Types.ObjectId,ref:'User',required:true}
 })
 
-const Link = mongoose.model('Link',linkSchema)
-module.exports = Link;
+const Link: Model<ILink> = mongoose.model<ILink>('Link', linkSchema);
+export default Link;
