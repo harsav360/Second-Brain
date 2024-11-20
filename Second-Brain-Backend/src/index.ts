@@ -70,18 +70,26 @@ app.post("/api/v1/signin", async (req, res) => {
 app.post("/api/v1/content", userMiddleware, async (req, res) => {
     const link = req.body.link;
     const type = req.body.type;
-    await Content.create({
-        link,
-        type,
-        title: req.body.title,
-        //@ts-ignore
-        userId: req.userId,
-        tags: []
-    })
+    try{
+        await Content.create({
+            link,
+            type,
+            title: req.body.title,
+            //@ts-ignore
+            userId: req.userId,
+            tags: []
+        })
+    
+        res.json({
+            message: "Content added"
+        })
 
-    res.json({
-        message: "Content added"
-    })
+    } catch (error:any) {
+        res.status(400).json({
+            message:error.message
+        })
+    }
+    
     
 })
 
